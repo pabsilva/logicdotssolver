@@ -82,7 +82,12 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Puzzles\Puzzle1.txt">
+    <Content Include="Puzzles\Puzzle11 - 2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Puzzles\Puzzle11 - 1.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
