@@ -109,55 +109,22 @@ namespace LogicDotsSolver.Solving
             var pointers = puzzle.GetLine(index,lineType).ToList();
             
             //OR the number or already placed dots (hints are not counted)
-            if((pointers.Count(x => x.Value == PuzzleCellState.Dot)) + piece > limits)
+            int placedDots = pointers.Count(x => x.Value == PuzzleCellState.Dot);
+            if(placedDots + piece > limits)
                 return null;
 
-            return TryPlace(puzzle, lineType, index, piece);
+            return TryPlace(puzzle, lineType, index, piece, limits - placedDots);
         }
 
         public static List<Puzzle> puzzles = new List<Puzzle>();
 
-        private static IEnumerable<int> GetOffsetIndices(Puzzle puzzle, List<PuzzleCellPointer> pointers, int piece)
-        {
-            int[] support = new int[puzzle.BoardSize];
-
-            //this does not SOLVE IT!! We need to consider the h
-            int lastValid = -1;
-            for (int i = 0; i < puzzle.BoardSize; i++)
-            {
-                if (pointers[i].Value.HasFlag(PuzzleCellState.Empty)
-                    || (pointers[i].Value.HasFlag(PuzzleCellState.Dot) && pointers[i].Value.HasFlag(PuzzleCellState.Hint)))
-                {
-                    for (int j = lastValid + 1; j <= i; j++)
-                    {
-                        support[j]++;
-                    }
-                }
-                else
-                {
-                    lastValid = i;
-                }
-            }
-
-            bool previousIsDotHint = false;
-            for (int i = 0; i < puzzle.BoardSize; i++)
-            {
-                if (support[i] >= piece
-                    && !previousIsDotHint)
-                    yield return i;
-
-                previousIsDotHint = (pointers[i].Value.HasFlag(PuzzleCellState.Dot) &&
-                                  pointers[i].Value.HasFlag(PuzzleCellState.Hint));
-            }
-        }
-
-        private static Puzzle TryPlace(Puzzle puzzle, LineType lineType, int index, int piece)
+        private static Puzzle TryPlace(Puzzle puzzle, LineType lineType, int index, int piece, int limits)
         {
             var pointers = puzzle.GetLine(index, lineType).ToList();
 
-            var coiso = GetOffsetIndices(puzzle, pointers, piece);
+            //var coiso = GetOffsetIndices(puzzle, pointers, piece);
 
-            foreach (var offset in GetOffsetIndices(puzzle, pointers, piece))
+            foreach (var offset in GetOffsetIndices(puzzle, pointers, piece, limits))
             {
                 //create a clone of the puzzle
                 var newPuzzle = puzzle.Clone();
@@ -231,10 +198,66 @@ namespace LogicDotsSolver.Solving
                     }
                 }
             }*/
-            
+
 
             return null;
         }
+
+
+        private static IEnumerable<int> GetOffsetIndices(Puzzle puzzle, List<PuzzleCellPointer> pointers, int piece, int limit)
+        {
+            int totalHints = 0;
+
+            int[] support = new int[puzzle.BoardSize];
+            int[] hintCount = new int[puzzle.BoardSize];
+
+            //this does not SOLVE IT!! We need to consider the hints
+            int lastValid = -1;
+            for (int i = 0; i < puzzle.BoardSize; i++)
+            {
+                if (pointers[i].Value.HasFlag(PuzzleCellState.Empty))
+                {
+                    for (int j = lastValid + 1; j <= i; j++)
+                    {
+                        support[j]++;
+                    }
+                }
+                else if (pointers[i].Value.HasFlag(PuzzleCellState.Dot) && pointers[i].Value.HasFlag(PuzzleCellState.Hint))
+                {
+                    totalHints++;
+
+                    for (int j = lastValid + 1; j <= i; j++)
+                    {
+                        support[j]++;
+                        hintCount[j]++;
+                    }
+
+                    //if this is a hint, a piece cannot be placed in a location that ends before a new hint appears
+                    int positionBeforeHint = i - piece;
+                    if (positionBeforeHint >= 0)
+                        support[positionBeforeHint] = -puzzle.BoardSize;
+                }
+                else
+                {
+                    lastValid = i;
+                }
+            }
+
+            bool previousIsDotHint = false;
+            for (int i = 0; i < puzzle.BoardSize; i++)
+            {
+                if (support[i] >= piece
+                    && !previousIsDotHint
+                    && (piece + totalHints - hintCount[i]) <= limit)
+                    yield return i;
+
+                //a piece cannot be placed in a location that starts after a new hint appears
+                previousIsDotHint = (pointers[i].Value.HasFlag(PuzzleCellState.Dot) &&
+                                  pointers[i].Value.HasFlag(PuzzleCellState.Hint));
+            }
+        }
+
+        
 
         private static void BlockHintedAreas(Puzzle puzzle)
         {
