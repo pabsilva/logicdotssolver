@@ -19,7 +19,7 @@ namespace LogicDotsSolver
         {
             InitializeComponent();
 
-            _initialPuzzle = new Puzzle("Puzzles/Puzzle11 - 2.txt");
+            _initialPuzzle = new Puzzle("Puzzles/Puzzle11 - 3.txt");
 
             gridCanvas.Puzzle = _initialPuzzle;
 
