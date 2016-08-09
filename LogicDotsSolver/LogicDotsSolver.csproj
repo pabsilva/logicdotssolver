@@ -82,6 +82,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Puzzles\Puzzle11 - 4.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Puzzles\Puzzle11 - 3.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
