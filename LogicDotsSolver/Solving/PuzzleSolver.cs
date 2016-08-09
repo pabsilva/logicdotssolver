@@ -265,29 +265,31 @@ namespace LogicDotsSolver.Solving
             {
                 for (int j = 0; j < puzzle.BoardSize; j++)
                 {
+                    var cell = puzzle[i, j];
+
                     //first, block cells hinted by the puzzle "directional" dots
-                    if (puzzle[i, j].HasFlag(PuzzleCellState.Left))
+                    if (cell.HasFlag(PuzzleCellState.Left) && !cell.HasFlag(PuzzleCellState.Horizontal)) //IS LEFT | HINT
                     {
                         var pointer = puzzle.GetPointerOrDefault(i + 1, j);
                         if (pointer != null)
                             pointer.Value = PuzzleCellState.Blocked;
                     }
 
-                    if (puzzle[i, j].HasFlag(PuzzleCellState.Right))
+                    if (cell.HasFlag(PuzzleCellState.Right) && !cell.HasFlag(PuzzleCellState.Horizontal))
                     {
                         var pointer = puzzle.GetPointerOrDefault(i - 1, j);
                         if (pointer != null)
                             pointer.Value = PuzzleCellState.Blocked;
                     }
 
-                    if (puzzle[i, j].HasFlag(PuzzleCellState.Up))
+                    if (cell.HasFlag(PuzzleCellState.Up) && !cell.HasFlag(PuzzleCellState.Vertical))
                     {
                         var pointer = puzzle.GetPointerOrDefault(i, j + 1);
                         if (pointer != null)
                             pointer.Value = PuzzleCellState.Blocked;
                     }
 
-                    if (puzzle[i, j].HasFlag(PuzzleCellState.Down))
+                    if (cell.HasFlag(PuzzleCellState.Down) && !cell.HasFlag(PuzzleCellState.Vertical))
                     {
                         var pointer = puzzle.GetPointerOrDefault(i, j - 1);
                         if (pointer != null)
@@ -317,6 +319,8 @@ namespace LogicDotsSolver.Solving
             {
                 for (int j = 0; j < puzzle.BoardSize; j++)
                 {
+                    var coiso = puzzle[i, j];
+
                     if (puzzle[i, j].HasFlag(PuzzleCellState.Left))
                         puzzle[i - 1, j] = PuzzleCellState.Dot | PuzzleCellState.Hint;
 
