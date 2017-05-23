@@ -32,13 +32,7 @@ namespace LogicDotsSolver.Solving
         private readonly int _x;
         private readonly int _y;
 
-        //private readonly Coordinate _coordinate;
 
-        /*public PuzzleCellPointer(Puzzle puzzle, Coordinate coordinate)
-        {
-            _coordinate = coordinate;
-            _puzzle = puzzle;
-        }*/
 
         public PuzzleCellPointer(Puzzle puzzle, int x, int y)
         {
@@ -47,31 +41,24 @@ namespace LogicDotsSolver.Solving
             _y = y;
         }
 
+
+
         public PuzzleCellState Value
         {
             get { return _puzzle[_x, _y]; }
             set { _puzzle[_x, _y] = value; }
         }
 
+
+
         public IEnumerable<PuzzleCellPointer> Around
         {
             get
             {
-                //there are 8 cases around this
-                /*if (_y > 0 && _x > 0)
-                    yield return new PuzzleCellPointer(_puzzle, _x - 1, _y - 1);
 
-                if (_y > 0)
-                    yield return new PuzzleCellPointer(_puzzle, _x - 1, _y);
-
-                if (_y < _puzzle.BoardSize)
-                    yield return new PuzzleCellPointer(_puzzle, _x, _y + 1);
-                */
-                
-                
                 if (_y > 0)
                 {
-                    if(_x > 0)
+                    if (_x > 0)
                         yield return new PuzzleCellPointer(_puzzle, _x - 1, _y - 1);
 
                     yield return new PuzzleCellPointer(_puzzle, _x, _y - 1);
@@ -102,10 +89,10 @@ namespace LogicDotsSolver.Solving
         }
     }
 
-    
 
     public class Puzzle
     {
+        private readonly string _path;
         private readonly int _boardSize;
         private readonly PuzzleCellState[,] _cellStates;
 
@@ -113,7 +100,9 @@ namespace LogicDotsSolver.Solving
 
         private int[] _columnLimits;
         private int[] _rowLimits;
-        
+
+
+
         public Puzzle(int boardSize)
         {
             _boardSize = boardSize;
@@ -125,11 +114,14 @@ namespace LogicDotsSolver.Solving
             _rowLimits = new int[boardSize];
         }
 
+
+
         private Puzzle(Puzzle puzzle)
         {
+            _path = puzzle.Path;
             _boardSize = puzzle._boardSize;
-            
-            _cellStates = new PuzzleCellState[_boardSize,_boardSize];
+
+            _cellStates = new PuzzleCellState[_boardSize, _boardSize];
             for (int i = 0; i < _boardSize; i++)
                 for (int j = 0; j < _boardSize; j++)
                     _cellStates[i, j] = puzzle._cellStates[i, j];
@@ -139,8 +131,12 @@ namespace LogicDotsSolver.Solving
             _rowLimits = puzzle._rowLimits.ToArray();
         }
 
+
+
         public Puzzle(String path)
         {
+            _path = path;
+
             string[] lines = File.ReadAllLines(path);
 
             //first line, the size
@@ -159,7 +155,7 @@ namespace LogicDotsSolver.Solving
             _cellStates = new PuzzleCellState[_boardSize, _boardSize];
             for (int j = 0; j < _boardSize; j++)
             {
-                var data = lines[4 + j].Split(';')[0].Trim().Split(',').Select(x => (PuzzleCellState)Enum.Parse(typeof(PuzzleCellState), x.Trim())).ToArray();
+                var data = lines[4 + j].Split(';')[0].Trim().Split(',').Select(x => (PuzzleCellState) Enum.Parse(typeof(PuzzleCellState), x.Trim())).ToArray();
                 for (int i = 0; i < _boardSize; i++)
                 {
                     _cellStates[i, j] = data[i] | PuzzleCellState.Hint;
@@ -168,16 +164,19 @@ namespace LogicDotsSolver.Solving
         }
 
 
+
         public int BoardSize
         {
             get { return _boardSize; }
         }
 
 
+
         public PuzzleCellState[,] CellStates
         {
             get { return _cellStates; }
         }
+
 
 
         public Queue<int> Pieces
@@ -187,17 +186,26 @@ namespace LogicDotsSolver.Solving
         }
 
 
+
+        public string Path
+        {
+            get { return _path; }
+        }
+
+
+
         public int[] ColumnLimits
         {
             get { return _columnLimits; }
             set
             {
-                if(value.Length != BoardSize)
+                if (value.Length != BoardSize)
                     throw new Exception("Number of values must be equal to the size of the board.");
 
                 _columnLimits = value;
             }
         }
+
 
 
         public int[] RowLimits
@@ -213,11 +221,15 @@ namespace LogicDotsSolver.Solving
         }
 
 
-        /*public PuzzleCellState this[Coordinate coordinate]
+
+        public PuzzleCellState this[int x, int y]
         {
-            get { return _cellStates[coordinate.X, coordinate.Y]; }
-            set { _cellStates[coordinate.X, coordinate.Y] = value; }
-        }*/
+            get { return _cellStates[x, y]; }
+            set { _cellStates[x, y] = value; }
+        }
+
+
+
         public int GetLineLimits(int index, LineType lineType)
         {
             if (lineType == LineType.Row)
@@ -225,6 +237,8 @@ namespace LogicDotsSolver.Solving
 
             return ColumnLimits[index];
         }
+
+
 
         public IEnumerable<PuzzleCellPointer> GetLine(int index, LineType lineType)
         {
@@ -234,11 +248,14 @@ namespace LogicDotsSolver.Solving
             return GetColumn(index);
         }
 
+
+
         public IEnumerable<PuzzleCellPointer> GetRow(int index)
         {
             for (int x = 0; x < _boardSize; x++)
                 yield return new PuzzleCellPointer(this, x, index);
         }
+
 
 
         public IEnumerable<PuzzleCellPointer> GetColumn(int index)
@@ -248,10 +265,11 @@ namespace LogicDotsSolver.Solving
         }
 
 
+
         public IEnumerable<PuzzleCellPointer> GetDiagonals(int x, int y)
         {
             if (x >= 1 && y >= 1)
-                yield return new PuzzleCellPointer(this, x-1, y-1);
+                yield return new PuzzleCellPointer(this, x - 1, y - 1);
 
             if (x >= 1 && y < _boardSize - 1)
                 yield return new PuzzleCellPointer(this, x - 1, y + 1);
@@ -263,11 +281,7 @@ namespace LogicDotsSolver.Solving
                 yield return new PuzzleCellPointer(this, x + 1, y - 1);
         }
 
-        public PuzzleCellState this[int x, int y]
-        {
-            get { return _cellStates[x, y]; }
-            set { _cellStates[x, y] = value; }
-        }
+
 
         public PuzzleCellPointer GetPointerOrDefault(int x, int y)
         {
@@ -276,6 +290,8 @@ namespace LogicDotsSolver.Solving
 
             return null;
         }
+
+
 
         public Puzzle Clone()
         {

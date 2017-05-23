@@ -6,99 +6,58 @@ namespace LogicDotsSolver.Solving
 {
     public class PuzzleSolver
     {
-
-        public static Puzzle Solve(Puzzle puzzle, int roundsLimit)
+        public static Puzzle Solve(Puzzle puzzle)
         {
-            puzzles.Clear();
-
-            RoundsLimit = puzzle.Pieces.Count - roundsLimit;
-
             //first, we can work with the hints that the puzzle already provides
             //this means connecting dots that imply that others are connected
             FillHints(puzzle);
 
+            //we can't place pieces around areas that already have dots, so block those areas
             BlockHintedAreas(puzzle);
-
             BlockDiagonals(puzzle);
 
-            //check below where the puzzle is clone!!!
-            puzzle = DoRecursive(puzzle.Clone());
+            //now, the strategy is to go recursively with backtracking, each type using a copy of the puzzle
+            puzzle = PlacePieces(puzzle.Clone());
 
-            //now, in the end, make all pieces look connected according to their proximity
-            if(puzzle != null)
+            //now, in the end, make all pieces look "connected" according to their proximity
+            if (puzzle != null)
                 FixDotConnections(puzzle);
-
-            //Console.WriteLine("Total: " + count);
 
             return puzzle;
         }
 
-        private static int RoundsLimit = 0;
-        private static int count = 0;
 
-        private static Puzzle DoRecursive(Puzzle puzzle)
+
+        private static Puzzle PlacePieces(Puzzle puzzle)
         {
             FillReachedLimits(puzzle);
-
-            //return puzzle;
 
             //if we have no more pieces to place, end this
             if (puzzle.Pieces.Count == 0)
                 return puzzle;
 
-            //if (rounds == 0)
-            //    return puzzle;
-                //Console.WriteLine();
-            
-
             //select and piece from the puzzle
             int piece = puzzle.Pieces.Dequeue();
 
-            count++;
-
+            //try to place the piece
             for (int index = 0; index < puzzle.BoardSize; index++)
             {
-                var solvedPuzzle = DoStuff(puzzle, LineType.Column, index, piece);
+                var solvedPuzzle = TryPlaceInLine(puzzle, LineType.Column, index, piece);
                 if (solvedPuzzle != null)
                     return solvedPuzzle;
 
-                solvedPuzzle = DoStuff(puzzle, LineType.Row, index, piece);
+                solvedPuzzle = TryPlaceInLine(puzzle, LineType.Row, index, piece);
                 if (solvedPuzzle != null)
                     return solvedPuzzle;
-
-
-                /*if ()
-                {
-                    var solvedPuzzle = DoRecursive(newPuzzle, rounds - 1);
-                    if (solvedPuzzle != null)
-                        return solvedPuzzle;
-                }
-
-                if (TryPlace(newPuzzle, newPuzzle.GetColumn(index).ToList(), newPuzzle.ColumnLimits[index], piece, offset))
-                {
-                    var solvedPuzzle = DoRecursive(newPuzzle, rounds - 1);
-                    if (solvedPuzzle != null)
-                        return solvedPuzzle;
-                }
-
-
-                //create a clone of the puzzle and attempt to place the piece horizontally
-                newPuzzle = puzzle.Clone();
-
-                if (TryPlace(newPuzzle, newPuzzle.GetRow(index).ToList(), newPuzzle.RowLimits[index], piece, offset))
-                {
-                    var solvedPuzzle = DoRecursive(newPuzzle, rounds - 1);
-                    if (solvedPuzzle != null)
-                        return solvedPuzzle;
-                }*/
             }
 
+            //if it fails, this is not a solution
             return null;
         }
 
 
 
-        private static Puzzle DoStuff(Puzzle puzzle, LineType lineType, int index, int piece)
+        private static Puzzle TryPlaceInLine(Puzzle puzzle, LineType lineType, int index, int piece)
         {
             var limits = puzzle.GetLineLimits(index, lineType);
 
@@ -106,24 +65,22 @@ namespace LogicDotsSolver.Solving
             if (piece > limits)
                 return null;
 
-            var pointers = puzzle.GetLine(index,lineType).ToList();
-            
+            var pointers = puzzle.GetLine(index, lineType).ToList();
+
             //OR the number or already placed dots (hints are not counted)
             int placedDots = pointers.Count(x => x.Value == PuzzleCellState.Dot);
-            if(placedDots + piece > limits)
+            if (placedDots + piece > limits)
                 return null;
 
             return TryPlace(puzzle, lineType, index, piece, limits - placedDots);
         }
 
-        public static List<Puzzle> puzzles = new List<Puzzle>();
+
 
         private static Puzzle TryPlace(Puzzle puzzle, LineType lineType, int index, int piece, int limits)
         {
             var pointers = puzzle.GetLine(index, lineType).ToList();
-
-            //var coiso = GetOffsetIndices(puzzle, pointers, piece);
-
+            
             foreach (var offset in GetOffsetIndices(puzzle, pointers, piece, limits))
             {
                 //create a clone of the puzzle
@@ -144,64 +101,14 @@ namespace LogicDotsSolver.Solving
                     }
                 }
 
-                var solution = DoRecursive(newPuzzle);
+                var solution = PlacePieces(newPuzzle);
                 if (solution != null)
                     return solution;
             }
 
-
-            /*for (int offset = 0; offset < puzzle.BoardSize - piece; offset++)
-            {
-
-                //and attempt to place the piece
-                int sequentialCount = 0;
-
-                //create a clone of the puzzle
-                var newPuzzle = puzzle.Clone();
-                
-                if (piece == 5)
-                    puzzles.Add(newPuzzle);
-
-                
-
-                for (int i = offset; i < pointers.Count; i++)
-                {
-                    if (pointers[i].Value.HasFlag(PuzzleCellState.Empty)
-                        || (pointers[i].Value.HasFlag(PuzzleCellState.Dot) && pointers[i].Value.HasFlag(PuzzleCellState.Hint)))
-                    {
-                        sequentialCount++;
-                        if (sequentialCount == piece)
-                        {
-                            var baseOffset = i - sequentialCount + 1;
-
-                            //fill the parts of the piece, since the beginning
-                            for (int j = 0; j < piece; j++)
-                                pointers[baseOffset + j].Value = PuzzleCellState.Dot;
-
-                            for (int j = 0; j < piece; j++)
-                            {
-                                foreach (PuzzleCellPointer puzzleCellPointer in pointers[baseOffset + j].Around)
-                                {
-                                    if (puzzleCellPointer.Value != PuzzleCellState.Dot)
-                                        puzzleCellPointer.Value = PuzzleCellState.Blocked;
-                                }
-                            }
-
-                            var solution = DoRecursive(newPuzzle);
-                            if (solution != null)
-                                return solution;
-                        }
-                    }
-                    else
-                    {
-                        sequentialCount = 0;
-                    }
-                }
-            }*/
-
-
             return null;
         }
+
 
 
         private static IEnumerable<int> GetOffsetIndices(Puzzle puzzle, List<PuzzleCellPointer> pointers, int piece, int limit)
@@ -211,7 +118,7 @@ namespace LogicDotsSolver.Solving
             int[] support = new int[puzzle.BoardSize];
             int[] hintCount = new int[puzzle.BoardSize];
 
-            //this does not SOLVE IT!! We need to consider the hints
+
             int lastValid = -1;
             for (int i = 0; i < puzzle.BoardSize; i++)
             {
@@ -253,11 +160,11 @@ namespace LogicDotsSolver.Solving
 
                 //a piece cannot be placed in a location that starts after a new hint appears
                 previousIsDotHint = (pointers[i].Value.HasFlag(PuzzleCellState.Dot) &&
-                                  pointers[i].Value.HasFlag(PuzzleCellState.Hint));
+                                     pointers[i].Value.HasFlag(PuzzleCellState.Hint));
             }
         }
 
-        
+
 
         private static void BlockHintedAreas(Puzzle puzzle)
         {
@@ -299,6 +206,8 @@ namespace LogicDotsSolver.Solving
             }
         }
 
+
+
         private static void BlockDiagonals(Puzzle puzzle)
         {
             for (int i = 0; i < puzzle.BoardSize; i++)
@@ -313,14 +222,13 @@ namespace LogicDotsSolver.Solving
         }
 
 
+
         private static void FillHints(Puzzle puzzle)
         {
             for (int i = 0; i < puzzle.BoardSize; i++)
             {
                 for (int j = 0; j < puzzle.BoardSize; j++)
                 {
-                    var coiso = puzzle[i, j];
-
                     if (puzzle[i, j].HasFlag(PuzzleCellState.Left))
                         puzzle[i - 1, j] = PuzzleCellState.Dot | PuzzleCellState.Hint;
 
@@ -336,6 +244,8 @@ namespace LogicDotsSolver.Solving
             }
         }
 
+
+
         private static void FillReachedLimits(Puzzle puzzle)
         {
             //iterate over all the columns and 
@@ -345,6 +255,8 @@ namespace LogicDotsSolver.Solving
                 FillReachedLimitsOfLine(puzzle.GetColumn(index).ToList(), puzzle.ColumnLimits[index]);
             }
         }
+
+
 
         private static void FillReachedLimitsOfLine(List<PuzzleCellPointer> valueList, int limit)
         {
@@ -359,6 +271,8 @@ namespace LogicDotsSolver.Solving
             }
         }
 
+
+
         private static void FixDotConnections(Puzzle puzzle)
         {
             for (int i = 0; i < puzzle.BoardSize; i++)
@@ -367,6 +281,8 @@ namespace LogicDotsSolver.Solving
                 FixLineDotConnections(puzzle.GetColumn(i).ToList(), PuzzleCellState.Down, PuzzleCellState.Up);
             }
         }
+
+
 
         private static void FixLineDotConnections(IEnumerable<PuzzleCellPointer> enumerable, PuzzleCellState previous, PuzzleCellState next)
         {

@@ -30,14 +30,14 @@
         {
             this.panel1 = new System.Windows.Forms.Panel();
             this.gridCanvas = new LogicDotsSolver.GridCanvas();
-            this.label1 = new System.Windows.Forms.Label();
+            this.labelPuzzleName = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridCanvas)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.label1);
+            this.panel1.Controls.Add(this.labelPuzzleName);
             this.panel1.Controls.Add(this.gridCanvas);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
@@ -55,14 +55,14 @@
             this.gridCanvas.TabIndex = 0;
             this.gridCanvas.TabStop = false;
             // 
-            // label1
+            // labelPuzzleName
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(32, 703);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(35, 13);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "label1";
+            this.labelPuzzleName.AutoSize = true;
+            this.labelPuzzleName.Location = new System.Drawing.Point(32, 703);
+            this.labelPuzzleName.Name = "labelPuzzleName";
+            this.labelPuzzleName.Size = new System.Drawing.Size(35, 13);
+            this.labelPuzzleName.TabIndex = 1;
+            this.labelPuzzleName.Text = "labelPuzzleName";
             // 
             // FormPuzzleSolver
             // 
@@ -83,7 +83,7 @@
 
         private GridCanvas gridCanvas;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labelPuzzleName;
     }
 }
 
